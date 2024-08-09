@@ -64,7 +64,7 @@ case $opt in
 
 "Установка ноды 0G Labs")
 # import code from csm/install.sh
-source <(curl -s https://raw.githubusercontent.com/Collieries/csm/install.sh)
+source <(curl -s https://raw.githubusercontent.com/Collieries/main/csm/install.sh)
 
 break
 ;;
@@ -164,7 +164,7 @@ echo 'export sleep_timeout=100000' >> $HOME/config.sh
 echo 'export min_balance=2000000000000000000' >> $HOME/config.sh
 source $HOME/config.sh
 
-#source <(curl -s https://raw.githubusercontent.com/Collieries/csm/cosmos/autodelegate.sh)
+#source <(curl -s https://raw.githubusercontent.com/Collieries/main/csm/cosmos/autodelegate.sh)
 
 break
 ;;
@@ -172,7 +172,7 @@ break
 #================================================================
 
 "Перезапуск ноды 0G Labs")
-#source <(curl -s https://raw.githubusercontent.com/Collieries/csm/cosmos/autorestart.sh)
+#source <(curl -s https://raw.githubusercontent.com/Collieries/main/csm/cosmos/autorestart.sh)
 
 systemctl daemon-reload
 systemctl enable ar_${DIRECTORY}.service
