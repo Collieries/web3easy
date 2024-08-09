@@ -1,0 +1,245 @@
+#!/bin/bash
+
+echo -e "\nПогрузись в мир Web3 вместе с https://web3easy.media\n"
+
+# Set parameters
+NODE_NAME="OG"
+NODE_CHAIN_ID="zgtendermint_16600-2"
+NODE_PORT="47"
+BINARY_VERSION_TAG="v0.2.3"
+CHAIN_DENOM="ua0gi"
+BINARY_NAME="0gchaind"
+DIRECTORY="0g-chain"
+HIDDEN_DIRECTORY=".0gchain"
+NODE_URL="https://github.com/0glabs/0g-chain.git"
+GENESIS_URL="https://snapshots-testnet.nodejumper.io/0g-testnet/genesis.json"
+MINIMUM_GAS_PRICES="0ua0gi"
+PEERS="3e0eb7d6f1d3ed10b9f6ea3be21659c26c15d8e1@75.119.136.158:12656,9a5b57dc9a3a039d5e40895c9c6693fb5e7fd0bf@84.247.165.202:12656,56ee4c337848a70a43887531b5f1ca211bac1a34@185.187.170.125:26656,d10b56eb34e0742d6a8dae727fb6665fe10c5a46@45.10.161.199:26656,071739b33526b5b76fc973b4acd87deaa459a8b7@38.242.215.207:12656,64ae89fe3e7db43ae721c3adc64ff798d9db0704@185.182.186.129:12656,79de4febc16b6d4469808ca5e28129c14d210a83@86.48.5.66:12656,017d9c24f2c9fd903a71902972ab0555edbe0c68@65.109.21.159:26656,603a32886cbf3f656f570e3a609676fb9f13b207@91.230.110.117:12656,e7887c0c4e8b480b442f3653d253624d7228eeb2@95.216.70.180:32656,6728909541591255507819da9455a26cb204b999@144.91.94.237:12656,54d2b6584357cf668965be0a1c60fbc238d41249@45.67.212.118:26656,163656a6c14cbfb6defd61431d28fe2964e3d9f7@65.21.141.117:43656,a774dcc243e53a7352a1a0d011282fdd5e0b4f00@144.76.195.234:34656,baeceedd1ec1ba6ce1b6d19bb40f7b571026fb05@75.119.136.242:26646,70ad090cc32d90a782ca02364611a972e8ec478e@167.235.117.176:34656,5781cfdfa52e0d1809d6ddd23a1cb0da03023c6c@161.97.68.106:12656,82f13a39ac407c982c8ede465658e2d4389ef446@185.194.217.28:26656,99edad826fe04bdb961f8dc1a30201b6f5123396@178.18.243.118:12656,d156385b557cd0b9e5e87ea85ad1ff0e723cc733@221.221.97.36:13456"
+SEEDS="81987895a11f6689ada254c6b57932ab7ed909b6@54.241.167.190:26656,010fb4de28667725a4fef26cdc7f9452cc34b16d@54.176.175.48:26656,e9b4bc203197b62cc7e6a80a64742e752f4210d5@54.193.250.204:26656,68b9145889e7576b652ca68d985826abd46ad660@18.166.164.232:26656"
+pruning="custom"
+pruning_keep_recent="100"
+pruning_interval="10"
+snapshot_interval="0"
+indexer="kv"
+# *************************************
+
+# export temp variables
+echo 'export NODE_NAME='$NODE_NAME > $HOME/config.sh
+echo 'export NODE_CHAIN_ID='$NODE_CHAIN_ID >> $HOME/config.sh
+echo 'export NODE_PORT='$NODE_PORT >> $HOME/config.sh
+echo 'export BINARY_VERSION_TAG='$BINARY_VERSION_TAG >> $HOME/config.sh
+echo 'export CHAIN_DENOM='$CHAIN_DENOM >> $HOME/config.sh
+echo 'export BINARY_NAME='$BINARY_NAME >> $HOME/config.sh
+echo 'export DIRECTORY='$DIRECTORY >> $HOME/config.sh
+echo 'export HIDDEN_DIRECTORY='$HIDDEN_DIRECTORY >> $HOME/config.sh
+echo 'export NODE_URL='$NODE_URL >> $HOME/config.sh
+echo 'export GENESIS_URL='$GENESIS_URL >> $HOME/config.sh
+echo 'export MINIMUM_GAS_PRICES='$MINIMUM_GAS_PRICES >> $HOME/config.sh
+echo 'export PEERS='$PEERS >> $HOME/config.sh
+echo 'export SEEDS='$SEEDS >> $HOME/config.sh
+echo 'export pruning='$pruning >> $HOME/config.sh
+echo 'export pruning_keep_recent='$pruning_keep_recent >> $HOME/config.sh
+echo 'export pruning_interval='$pruning_interval >> $HOME/config.sh
+echo 'export snapshot_interval='$snapshot_interval >> $HOME/config.sh
+echo 'export indexer='$indexer >> $HOME/config.sh
+source $HOME/config.sh
+
+# Menu
+
+PS3='Select an action: '
+options=(
+"Установка ноды 0G Labs"
+"Обновить ноду 0G Labs"
+"Синхронизация с помощью снепшота"
+"Удалить ноду 0G Labs"
+"Делегировать токены"
+"Перезапуск ноды 0G Labs"
+"Создать валидатора"
+"Выход")
+select opt in "${options[@]}"
+do
+case $opt in
+
+#================================================================
+
+"Установка ноды 0G Labs")
+# import code from csm/install.sh
+source <(curl -s https://raw.githubusercontent.com/Collieries/csm/install.sh)
+
+break
+;;
+
+#================================================================
+
+"Обновить ноду 0G Labs")
+systemctl stop Ogchaind
+rm /usr/local/bin/0gchaind
+cd 0g-chain/
+git reset --hard HEAD
+git fetch && git checkout v0.2.3
+make install
+
+sudo cp $(which 0gchaind) /usr/local/bin/ && cd $HOME
+0gchaind version --long | grep -e version -e commit
+
+rm $HOME/.0gchain/config/addrbook.json $HOME/.0gchain/config/genesis.json
+0gchaind tendermint unsafe-reset-all --home $HOME/.0gchain
+
+echo "export OG_CHAIN_ID=zgtendermint_16600-2" >> $HOME/.bash_profile
+source $HOME/.bash_profile
+0gchaind config chain-id $OG_CHAIN_ID
+
+wget https://github.com/0glabs/0g-chain/releases/download/v0.2.3/genesis.json -O $HOME/.0gchain/config/genesis.json
+
+PEERS=$(curl -sS https://0grpc.tech-coha05.xyz/net_info | jq -r '.result.peers[] | "\(.node_info.id)@\(.remote_ip):\(.node_info.listen_addr)"' | awk -F ':' '{print $1":"$(NF)}' | paste -sd, -)
+sed -i.bak -e "s/^persistent_peers *=.*/persistent_peers = \"$PEERS\"/" $HOME/.0gchain/config/config.toml
+
+if ! dpkg -s lz4 &> /dev/null; then
+sudo apt update && apt upgrade -y
+apt install lz4 -y
+fi
+
+cp $HOME/.0gchain/data/priv_validator_state.json $HOME/.0gchain/priv_validator_state.json.backup
+0gchaind tendermint unsafe-reset-all --home $HOME/.0gchain --keep-addr-book
+curl https://snapshots-testnet.nodejumper.io/0g-testnet/0g-testnet_latest.tar.lz4 | lz4 -dc - | tar -xf - -C $HOME/.0gchain
+mv $HOME/.0gchain/priv_validator_state.json.backup $HOME/.0gchain/data/priv_validator_state.json
+sudo systemctl restart Ogchaind
+
+echo '=============== Обновление установлено ==================='
+
+break
+;;
+
+#================================================================
+
+"Синхронизация с помощью снепшота")
+# install dependencies, if needed
+if ! dpkg -s lz4 &> /dev/null; then
+sudo apt update && apt upgrade -y
+apt install lz4 -y
+fi
+
+sudo systemctl stop Ogchaind
+cp $HOME/.0gchain/data/priv_validator_state.json $HOME/.0gchain/priv_validator_state.json.backup
+0gchaind tendermint unsafe-reset-all --home $HOME/.0gchain --keep-addr-book
+curl https://snapshots-testnet.nodejumper.io/0g-testnet/0g-testnet_latest.tar.lz4 | lz4 -dc - | tar -xf - -C $HOME/.0gchain
+mv $HOME/.0gchain/priv_validator_state.json.backup $HOME/.0gchain/data/priv_validator_state.json
+sudo systemctl restart Ogchaind
+
+echo '=============== Синхронизация успешна ==================='
+
+break
+;;
+
+#================================================================
+
+"Удалить ноду 0G Labs")
+sudo systemctl stop Ogchaind_NAME ad_${DIRECTORY} df_${DIRECTORY}
+sudo systemctl disable Ogchaind ad_${DIRECTORY} df_${DIRECTORY}
+rm /etc/systemd/system/Ogchaind.service
+rm /etc/systemd/system/ad_${BINARY_NAME}.service
+#rm /etc/systemd/system/df_${BINARY_NAME}.service
+sudo systemctl daemon-reload
+cd $HOME
+rm -rf $DIRECTORY
+rm -rf df_${DIRECTORY}
+rm -rf $HIDDEN_DIRECTORY
+rm -f $(which $BINARY_NAME)
+rm -f /root/scripts/ad_${DIRECTORY}.sh
+rm -f /root/scripts/ar_${DIRECTORY}.sh
+
+break
+;;
+
+#================================================================
+
+
+"Делегировать токены в своего валидатора")
+ADDRESS=$(0gchaind keys show wallet -a)
+VALOPER=$(0gchaind keys show wallet --bech val -a)
+echo "export address="${ADDRESS} >> $HOME/config.sh
+echo "export valoper="${VALOPER} >> $HOME/config.sh
+echo 'export gas=300000' >> $HOME/config.sh
+echo 'export sleep_timeout=100000' >> $HOME/config.sh
+echo 'export min_balance=2000000000000000000' >> $HOME/config.sh
+source $HOME/config.sh
+
+#source <(curl -s https://raw.githubusercontent.com/Collieries/csm/cosmos/autodelegate.sh)
+
+break
+;;
+
+#================================================================
+
+"Перезапуск ноды 0G Labs")
+#source <(curl -s https://raw.githubusercontent.com/Collieries/csm/cosmos/autorestart.sh)
+
+systemctl daemon-reload
+systemctl enable ar_${DIRECTORY}.service
+systemctl restart ar_${DIRECTORY}.service
+
+break
+;;
+
+#================================================================
+
+"Создать валидатораr")
+
+cd $DIRECTORY
+
+if [ -z "$MONIKER" ]; then
+  echo "*********************"
+  echo -e "\e[1m\e[32m	Введите название вашей ноды:\e[0m"
+  echo "*********************"
+  read MONIKER
+  echo 'export MONIKER='$MONIKER >> $HOME/.bash_profile
+fi
+
+if [ -z "$WEBSITE" ]; then
+  echo "*********************"
+  echo -e "\e[1m\e[32m	Ведите ваш Веб-сайт:\e[0m"
+  echo "*********************"
+  read WEBSITE
+  echo 'export WEBSITE='$WEBSITE >> $HOME/.bash_profile
+fi
+
+if [ -z "$EMAIL" ]; then
+  echo "*********************"
+  echo -e "\e[1m\e[32m	Введите вашу почту:\e[0m"
+  echo "*********************"
+  read EMAIL
+  echo 'export EMAIL='$EMAIL >> $HOME/.bash_profile
+fi
+
+source ~/.bash_profile
+
+sleep $(shuf -i 1000-10000 -n 1)
+
+# Change <identity> to your key from keybase
+0gchaind tx staking create-validator \
+--amount 1000000$CHAIN_DENOM \
+--from=wallet \
+--chain-id=$NODE_CHAIN_ID \
+--commission-rate "0.1" \
+--commission-max-rate "0.20" \
+--commission-max-change-rate "0.1" \
+--min-self-delegation "1" \
+--pubkey=$(0gchaind tendermint show-validator) \
+--moniker=$MONIKER \
+--identity=$IDENTITY \
+--website=$WEBSITE \
+--gas="auto" \
+--gas-adjustment=1.4 \
+-y
+
+
+
+break
+;;
+
+#================================================================
+
+"Exit")
+exit
+esac
+done
