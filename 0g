@@ -63,7 +63,7 @@ case $opt in
 #================================================================
 
 "Установка ноды 0G Labs")
-# import code from csm/install.sh
+# import code from csm/main/install.sh
 source <(curl -s https://raw.githubusercontent.com/Collieries/csm/main/install.sh)
 
 break
